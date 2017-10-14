@@ -13,11 +13,10 @@ import utils
 import dataset
 import time
 
-import models.crnn as crnn
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--trainlist', required=True, help='path to train_list')
 parser.add_argument('--vallist', required=True, help='path to val_list')
+parser.add_argument('--task', default='mnt', help='task mnt or octave')
 parser.add_argument('--workers', type=int, help='number of data loading workers', default=2)
 parser.add_argument('--batchSize', type=int, default=64, help='input batch size')
 parser.add_argument('--imgH', type=int, default=32, help='the height of the input image to network')
@@ -70,7 +69,7 @@ train_loader = torch.utils.data.DataLoader(
     num_workers=int(opt.workers),
     collate_fn=dataset.alignCollate(imgH=opt.imgH, imgW=opt.imgW, keep_ratio=opt.keep_ratio))
 
-test_dataset = dataset.listDataset(list_file =opt.vallist, transform=dataset.resizeNormalize((100, 32)))
+test_dataset = dataset.listDataset(list_file =opt.vallist, transform=dataset.resizeNormalize((opt.imgW, opt.imgH)))
 
 nclass = len(opt.alphabet.split(opt.sep)) + 1
 nc = 1
@@ -89,7 +88,13 @@ def weights_init(m):
         m.bias.data.fill_(0)
 
 
-crnn = crnn.CRNN(opt.imgH, nc, nclass, opt.nh)
+if opt.task == 'mnt':
+    import models.crnn as crnn
+    crnn = crnn.CRNN(opt.imgH, nc, nclass, opt.nh)
+elif opt.task == 'octave':
+    import models.octave as octave
+    crnn = octave.CRNN(opt.imgH, nc, nclass, opt.nh)
+
 crnn.apply(weights_init)
 if opt.crnn != '':
     print('loading pretrained model from %s' % opt.crnn)
