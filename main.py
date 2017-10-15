@@ -71,7 +71,7 @@ train_loader = torch.utils.data.DataLoader(
 
 test_dataset = dataset.listDataset(list_file =opt.vallist, transform=dataset.resizeNormalize((opt.imgW, opt.imgH)))
 
-nclass = len(opt.alphabet.split(opt.sep)) + 1
+nclass = len(opt.alphabet.split(opt.sep))
 nc = 1
 
 converter = utils.strLabelConverterForAttention(opt.alphabet, opt.sep)
